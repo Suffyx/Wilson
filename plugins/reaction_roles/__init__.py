@@ -32,6 +32,6 @@ def setup(bot: Wilson:
     """Sets up the cogs from the core module.
 
     Parameters:
-       bot: Wilson - The bot the cog is loaded onto. Passed by discord.py
+       bot: core.Wilson - The bot the cog is loaded onto. Passed by discord.py
     """
     bot.add_cog(ReactionRoles(bot))
