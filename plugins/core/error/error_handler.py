@@ -43,7 +43,7 @@ class ErrorHandler(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_ready(ctx: Context, error: Exception):
+    async def on_slash_command_error(ctx: Context, error: Exception):
         """Run script 'isaiahError.sh', and pass the error, so that error messages continue output even if Wilson is silenced or made a background process.
 
         Parameters:
