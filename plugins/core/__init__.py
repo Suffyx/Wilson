@@ -26,7 +26,6 @@ from core import Wilson
 
 from plugins.core.error import ErrorHandler
 from plugins.core.startup import Login
-from plugins.core.help import HelpCommand
 
 
 def setup(bot: Wilson):
@@ -37,4 +36,3 @@ def setup(bot: Wilson):
     """
     bot.add_cog(ErrorHandler(bot))
     bot.add_cog(Login(bot))
-    bot.add_cog(HelpCommand(bot))
