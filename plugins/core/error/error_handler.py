@@ -52,5 +52,5 @@ class ErrorHandler(commands.Cog):
         """
         chdir("../../../scripts/")
         i = error.replace("'", "\\'")
-        call(f"./isaiahError.sh '{i}'", shell=True)
+        call(f"./wilsonError.sh '{i}'", shell=True)
         chdir("../plugins/core/error/")
