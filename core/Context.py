@@ -48,7 +48,7 @@ __all__ = (
     "AutocompleteContext"
 )
 
-class ApplicationContext(discord.abc.Messageable):
+class Context(discord.abc.Messageable):
     """Represents a Discord application command interaction context.
 
     This class is not created manually and is instead passed to application
@@ -148,7 +148,7 @@ class ApplicationContext(discord.abc.Messageable):
         return self.command.cog
     
     async def error(self, content: str) -> Message:
-        """Display's an Wilson exception.
+        """Display's a[n] Wilson exception.
 
         Parameters:
            content: str - The content of the error itself
