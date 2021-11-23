@@ -87,7 +87,7 @@ class Menus(commands.Cog):
         for emoji in emojis:
             await message.add_reaction(emoji)
             
-    @slash_command()
+    @slash_command(name="Edit Role Menu")
     async def edit_role_menu(
       ctx,
       message_id: Option(str, "Message ID for the new reaction role base."),
