@@ -37,14 +37,14 @@ from discord.interactions import Interaction
 
 # from utils import __build_database
 
-def __recursive_object_builder(d):
+def recursive_object_builder(d):
     """Returns a dictionary as an object class.
 
     Parameters:
       d: dict - The dictionary whose keys and values will become an object.
     """
     if isinstance(d, list):
-        d = [__recursive_object_builder(x) for x in d]
+        d = [recursive_object_builder(x) for x in d]
 
     if not isinstance(d, dict):
         return d
@@ -55,7 +55,7 @@ def __recursive_object_builder(d):
     obj = Obj()
 
     for o in d:
-        obj.__dict__[o] = __recursive_object_builder(d[o])
+        obj.__dict__[o] = recursive_object_builder(d[o])
 
     return obj
 
@@ -92,18 +92,17 @@ class Wilson(commands.AutoShardedBot):
 
         # makes sure that the database has all necessary attributes to run the bot properly
         #     __build_database(self.db)
+            
+        self.rooms = {} # set up rooms dictionary so that plugins.rooms.EventHandler and plugins.rooms.RoomCommands can remain consistent
 
-        for ext in self.config.EXTENSIONS:
-            self.load_extension(ext)
-
-    @property
-    def db(self):
-        """Returns a dictionary of open shelves."""
-        return {
-            "prefixes": shelve.open(self.config.PREFIX_TABLE_PATH),
-            "guilds": shelve.open(self.config.GUILD_TABLE_PATH),
-            "users": shelve.open(self.config.USER_TABLE_PATH),
-        }
+#     @property
+#     def db(self):
+#         """Returns a dictionary of open shelves."""
+#         return {
+#             "prefixes": shelve.open(self.config.PREFIX_TABLE_PATH),
+#             "guilds": shelve.open(self.config.GUILD_TABLE_PATH),
+#             "users": shelve.open(self.config.USER_TABLE_PATH),
+#         }
 
     @property
     def config(self):
@@ -112,50 +111,52 @@ class Wilson(commands.AutoShardedBot):
         if self.__config_state:
             return self.__config
         with open(os.getenv("CONFIG_PATH")) as f:
-            config_obj = __recursive_object_builder(json.load(f))
+            config_obj = recursive_object_builder(json.load(f))
 
         self.__config_state = True
         self.__config = config_obj
         return config_obj
 
-    def __get_prefix(self, message: discord.Message):
+    def __get_prefix(self, bot, message: discord.Message):
         """Returns a guild's set prefix or the default prefix.
 
         Parameters:
            message: discord.Message - The context message for the prefix.
         """
-        if not message.guild:
-            return self.__default_prefix
+#         if not message.guild:
+#             return self.__default_prefix
 
-        elif str(message.guild.id) not in self.db["prefixes"]:
-            return self.__default_prefix
+#         elif str(message.guild.id) not in self.db["prefixes"]:
+#             return self.__default_prefix
 
-        else:
-            return self.db["prefixes"][str(message.guild.id)]
+#         else:
+#             return self.db["prefixes"][str(message.guild.id)]
 
-    async def process_commands(self, message: Message) -> None:
-        """|coro|
+        return self.__default_prefix
 
-        This function processes the commands that have been registered
-        to the bot and other groups. Without this coroutine, none of the
-        commands will be triggered.
-        By default, this coroutine is called inside the :func:`.on_message`
-        event. If you choose to override the :func:`.on_message` event, then
-        you should invoke this coroutine as well.
-        This is built using other low level tools, and is equivalent to a
-        call to :meth:`~.Bot.get_context` followed by a call to :meth:`~.Bot.invoke`.
-        This also checks if the message's author is a bot and doesn't
-        call :meth:`~.Bot.get_context` or :meth:`~.Bot.invoke` if so.
-        Parameters
-        -----------
-        message: :class:`discord.Message`
-            The message to process commands for.
-        """
-        if message.author.bot:
-            return
+#     async def process_commands(self, message: Message) -> None:
+#         """|coro|
 
-        ctx = await self.get_context(message, Context)
-        await self.invoke(ctx)
+#         This function processes the commands that have been registered
+#         to the bot and other groups. Without this coroutine, none of the
+#         commands will be triggered.
+#         By default, this coroutine is called inside the :func:`.on_message`
+#         event. If you choose to override the :func:`.on_message` event, then
+#         you should invoke this coroutine as well.
+#         This is built using other low level tools, and is equivalent to a
+#         call to :meth:`~.Bot.get_context` followed by a call to :meth:`~.Bot.invoke`.
+#         This also checks if the message's author is a bot and doesn't
+#         call :meth:`~.Bot.get_context` or :meth:`~.Bot.invoke` if so.
+#         Parameters
+#         -----------
+#         message: :class:`discord.Message`
+#             The message to process commands for.
+#         """
+#         if message.author.bot:
+#             return
+
+#         ctx = await self.get_context(message, Context)
+#         await self.invoke(ctx)
 
     async def on_message(self, message: discord.Message):
         """The general on_message event listener. When overridden, commands will not register unless this function, or any equivalent is likewise called.
@@ -165,51 +166,51 @@ class Wilson(commands.AutoShardedBot):
         """
         await self.process_commands(message)
         
-    async def process_application_commands(self, interaction: Interaction) -> None:
-        """|coro|
-        This function processes the commands that have been registered
-        to the bot and other groups. Without this coroutine, none of the
-        commands will be triggered.
-        By default, this coroutine is called inside the :func:`.on_interaction`
-        event. If you choose to override the :func:`.on_interaction` event, then
-        you should invoke this coroutine as well.
-        This function finds a registered command matching the interaction id from
-        :attr:`.ApplicationCommandMixin.application_commands` and runs :meth:`ApplicationCommand.invoke` on it. If no matching
-        command was found, it replies to the interaction with a default message.
-        .. versionadded:: 2.0
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction`
-            The interaction to process
-        """
-        if interaction.type not in (
-            InteractionType.application_command, 
-            InteractionType.auto_complete
-        ):
-            return
+#     async def process_application_commands(self, interaction: Interaction) -> None:
+#         """|coro|
+#         This function processes the commands that have been registered
+#         to the bot and other groups. Without this coroutine, none of the
+#         commands will be triggered.
+#         By default, this coroutine is called inside the :func:`.on_interaction`
+#         event. If you choose to override the :func:`.on_interaction` event, then
+#         you should invoke this coroutine as well.
+#         This function finds a registered command matching the interaction id from
+#         :attr:`.ApplicationCommandMixin.application_commands` and runs :meth:`ApplicationCommand.invoke` on it. If no matching
+#         command was found, it replies to the interaction with a default message.
+#         .. versionadded:: 2.0
+#         Parameters
+#         -----------
+#         interaction: :class:`discord.Interaction`
+#             The interaction to process
+#         """
+#         if interaction.type not in (
+#             InteractionType.application_command, 
+#             InteractionType.auto_complete
+#         ):
+#             return
 
-        try:
-            command = self._application_commands[interaction.data["id"]]
-        except KeyError:
-            self.dispatch("unknown_command", interaction)
-        else:
-            if interaction.type is InteractionType.auto_complete:
-                ctx = await self.get_autocomplete_context(interaction)
-                ctx.command = command
-                return await command.invoke_autocomplete_callback(ctx)
+#         try:
+#             command = self._application_commands[interaction.data["id"]]
+#         except KeyError:
+#             self.dispatch("unknown_command", interaction)
+#         else:
+#             if interaction.type is InteractionType.auto_complete:
+#                 ctx = await self.get_autocomplete_context(interaction)
+#                 ctx.command = command
+#                 return await command.invoke_autocomplete_callback(ctx)
             
-            ctx = await self.get_application_context(interaction)
-            ctx.command = command
-            self.dispatch("application_command", ctx)
-            try:
-                if await self.can_run(ctx, call_once=True):
-                    await ctx.command.invoke(ctx)
-                else:
-                    raise CheckFailure("The global check once functions failed.")
-            except DiscordException as exc:
-                await ctx.command.dispatch_error(ctx, exc)
-            else:
-                self.dispatch("application_command_completion", ctx)
+#             ctx = await self.get_application_context(interaction)
+#             ctx.command = command
+#             self.dispatch("application_command", ctx)
+#             try:
+#                 if await self.can_run(ctx, call_once=True):
+#                     await ctx.command.invoke(ctx)
+#                 else:
+#                     raise CheckFailure("The global check once functions failed.")
+#             except DiscordException as exc:
+#                 await ctx.command.dispatch_error(ctx, exc)
+#             else:
+#                 self.dispatch("application_command_completion", ctx)
 
     async def get_application_context(
         self, interaction: Interaction, cls=None
