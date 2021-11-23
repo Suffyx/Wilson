@@ -24,7 +24,7 @@ SOFTWARE.
 
 from core import Wilson
 
-from plugins.reaction_roles import Menus
+from plugins.reaction_roles.menus import Menus
 
 
 def setup(bot: Wilson):
