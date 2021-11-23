@@ -33,8 +33,8 @@ if TYPE_CHECKING:
     from discord import Bot
     from discord.state import ConnectionState
 
-    from .commands import ApplicationCommand, Option
-    from ..cog import Cog
+    from discord.ext.commands import ApplicationCommand, Option
+    from discord.cog import Cog
 
 from discord.guild import Guild
 from discord.interactions import Interaction, InteractionResponse
