@@ -33,6 +33,8 @@ import os
 
 from .Context import Context
 
+from discord.interactions import Interaction
+
 # from utils import __build_database
 
 def __recursive_object_builder(d):
@@ -162,3 +164,75 @@ class Wilson(commands.AutoShardedBot):
            message: discord.Message - The message registered by the listener.
         """
         await self.process_commands(message)
+        
+    async def process_application_commands(self, interaction: Interaction) -> None:
+        """|coro|
+        This function processes the commands that have been registered
+        to the bot and other groups. Without this coroutine, none of the
+        commands will be triggered.
+        By default, this coroutine is called inside the :func:`.on_interaction`
+        event. If you choose to override the :func:`.on_interaction` event, then
+        you should invoke this coroutine as well.
+        This function finds a registered command matching the interaction id from
+        :attr:`.ApplicationCommandMixin.application_commands` and runs :meth:`ApplicationCommand.invoke` on it. If no matching
+        command was found, it replies to the interaction with a default message.
+        .. versionadded:: 2.0
+        Parameters
+        -----------
+        interaction: :class:`discord.Interaction`
+            The interaction to process
+        """
+        if interaction.type not in (
+            InteractionType.application_command, 
+            InteractionType.auto_complete
+        ):
+            return
+
+        try:
+            command = self._application_commands[interaction.data["id"]]
+        except KeyError:
+            self.dispatch("unknown_command", interaction)
+        else:
+            if interaction.type is InteractionType.auto_complete:
+                ctx = await self.get_autocomplete_context(interaction)
+                ctx.command = command
+                return await command.invoke_autocomplete_callback(ctx)
+            
+            ctx = await self.get_application_context(interaction)
+            ctx.command = command
+            self.dispatch("application_command", ctx)
+            try:
+                if await self.can_run(ctx, call_once=True):
+                    await ctx.command.invoke(ctx)
+                else:
+                    raise CheckFailure("The global check once functions failed.")
+            except DiscordException as exc:
+                await ctx.command.dispatch_error(ctx, exc)
+            else:
+                self.dispatch("application_command_completion", ctx)
+
+    async def get_application_context(
+        self, interaction: Interaction, cls=None
+    ) -> Context:
+        r"""|coro|
+        Returns the invocation context from the interaction.
+        This is a more low-level counter-part for :meth:`.process_application_commands`
+        to allow users more fine grained control over the processing.
+        Parameters
+        -----------
+        interaction: :class:`discord.Interaction`
+            The interaction to get the invocation context from.
+        cls
+            The factory class that will be used to create the context.
+            By default, this is :class:`.ApplicationContext`. Should a custom
+            class be provided, it must be similar enough to
+            :class:`.ApplicationContext`\'s interface.
+        Returns
+        --------
+        :class:`.ApplicationContext`
+            The invocation context. The type of this can change via the
+            ``cls`` parameter.
+        """
+        if cls is None:
+            cls = Context
+        return cls(self, interaction)
